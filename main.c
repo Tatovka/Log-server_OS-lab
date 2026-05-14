@@ -8,11 +8,11 @@
 #include <fcntl.h>
 #include <time.h>
 
-#define FIFONAME "/home/tatovka/logger_fifo"
-#define PROTONAME "/home/tatovka/logger_proto"
+#define FIFONAME "/home/tatovka/os-hw8-log_server/log/logger_fifo"
+#define PROTONAME "/home/tatovka/os-hw8-log_server/log/logger_proto"
 #define FAILURE_CODE 1
 #define KILL_CODE 2
-#define ALARM_FREQ 5
+#define ALARM_FREQ 10
 
 #define BECOME_DAEMON become_daemon && !is_daemon
 
@@ -163,6 +163,12 @@ void init_syscalls() {
     }
 }
 
+void print_buf(char* buf, int S) {
+    logger_stat.size += S;
+    buf[S] = 0;
+    printf("%s", buf);
+}
+
 int main(int argc, char** argv) {
     int shouldDaemonize = 0;
     for (int i = 1; i < argc; ++i) {
@@ -171,7 +177,6 @@ int main(int argc, char** argv) {
     
     init_syscalls();
 
-    
     int mkres = mkfifo(FIFONAME, 0600);
     if (mkres < 0) {
         if (errno != EEXIST)  leave(FAILURE_CODE);
@@ -205,6 +210,11 @@ int main(int argc, char** argv) {
             if (BECOME_DAEMON) daemonize();
             check_alarm();
             S += s;
+
+            if (S == 1024) {
+                print_buf(buf, S);
+                S = 0;
+            }
         } while (s > 0);
 
         if (close(fifoD) < 0) {
@@ -213,15 +223,10 @@ int main(int argc, char** argv) {
         }
 
         if (buf[S - 1] != '\n') {
-            buf[S] = '\n';
-            buf[S + 1] = 0;
-        } else {
-            buf[S] = 0;
+            buf[S++] = '\n';
         }
-
-        printf("%s", buf);
+        print_buf(buf, S);
         logger_stat.cycles += 1;
-        logger_stat.size += S;
     }
     print_stat();
     if (remove(FIFONAME) < 0) {
