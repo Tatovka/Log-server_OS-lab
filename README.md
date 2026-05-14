@@ -1,0 +1,4 @@
+## Пример работы логгера.
+Сначала я запустил логгер как обычный процесс в треминале и [отправил](https://github.com/Tatovka/Log-server_OS-lab/blob/master/2026-05-15-000339_hyprshot.png) ему короткое сообщение, а псоле SIGUSR1.
+Затем [превратил](https://github.com/Tatovka/Log-server_OS-lab/blob/master/2026-05-15-000435_hyprshot.png) его в демон и отправил через cat еще длинный файл на 12КБ. Как можно заметить, он честно [прочитал](https://github.com/Tatovka/Log-server_OS-lab/blob/master/2026-05-15-000512_hyprshot.png) весь файл одним сообщением.
+В конце я [послал](https://github.com/Tatovka/Log-server_OS-lab/blob/master/2026-05-15-000527_hyprshot.png) ему SIGINT и процесс завершился, выведя статистику. Завершая же процесс через SIGKILL, статистика не выводится и файл fifo канала не удаляется, так как этот сигнал не отлавливается.  
